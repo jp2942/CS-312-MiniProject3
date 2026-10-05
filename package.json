@@ -1,22 +1,22 @@
 {
-  "name": "cs-312-miniproject-1",
+  "name": "cs-312-miniproject-3",
   "version": "1.0.0",
-  "description": "This app will allow users to make, edit, view, and delete blog posts.",
+  "description": "This project builds on my Mini-Project 1 Sedona blog. I am adding PostgreSQL to save posts between sessions and user accounts so people can only edit or delete their own posts.",
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/jp2942/CS-312-MiniProject-1.git"
+    "url": "git+https://github.com/jp2942/CS-312-MiniProject-3.git"
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "bugs": {
-    "url": "https://github.com/jp2942/CS-312-MiniProject-1/issues"
+    "url": "https://github.com/jp2942/CS-312-MiniProject-3/issues"
   },
-  "homepage": "https://github.com/jp2942/CS-312-MiniProject-1#readme",
+  "homepage": "https://github.com/jp2942/CS-312-MiniProject-3#readme",
   "dependencies": {
     "ejs": "^6.0.1",
     "express": "^5.2.1"
