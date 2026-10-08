@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign In</title>
+    <link rel="stylesheet" href="/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <h1>Sign In</h1>
+
+    <!-- signin failure message -->
+    <% if (error) { %>
+        <p><%= error %></p>
+    <% } %>
+
+    <!-- collect login information -->
+    <form action="/signin" method="POST">
+        <label for="user_id">User ID:</label>
+        <input type="text" id="user_id" name="user_id" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+
+        <button type="submit">Sign In</button>
+    </form>
+
+    <p><a href="/signup">Create an account</a></p>
+</body>
+</html>

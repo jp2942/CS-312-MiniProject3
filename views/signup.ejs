@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="/styles.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+</head>
+<body>
+    <h1>Create an Account</h1>
+
+    <!-- signup failure message -->
+    <% if (error) { %>
+        <p><%= error %></p>
+    <% } %>
+
+    <!-- collect new account information -->
+    <form action="/signup" method="POST">
+        <label for="user_id">User ID:</label>
+        <input type="text" id="user_id" name="user_id" maxlength="255" required>
+
+        <label for="password">Password:</label>
+        <input type="password" id="password" name="password" required>
+
+        <label for="name">Name</label>
+        <input type="text" id="name" name="name" maxlength="255" required>
+
+        <button type="submit">Sign Up</button>
+    </form>
+</body>
+</html>
