@@ -1,9 +1,23 @@
 const express = require("express"); // Set up Express and create the app
 const app = express();
 const db = require("./db");
+const session = require("express-session");
 app.set("view engine", "ejs"); // Use EJS templates to display the pages
 app.use(express.urlencoded({ extended: false })); // Make submitted form fields available in req.body
 app.use(express.static("public")); // Serve files from the public folder
+
+// Stay signed in
+app.use(session({
+    name: "blog.sid",
+    secret: process.env.SESSION_SECRET,
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        httpOnly: true,
+        sameSite: "lax",
+        maxAge: 60 * 60 * 1000
+    }
+}));
 
 // Show signup form
 app.get("/signup", function (req, res) {
@@ -63,6 +77,63 @@ app.post("/signup", async function (req, res) {
             error: error.code === "23505"
                 ? "User ID has been snatched already"
                 : "Sorry, try that again"
+        });
+    }
+});
+
+// Check login information to start session
+app.post("/signin", async function (req, res) {
+    const userId = (req.body.user_id || "").trim();
+    const password = req.body.password || "";
+
+    if (!userId || !password ||
+        Buffer.byteLength(password, "utf8") > 72) {
+        return res.status(401).render("signin", {
+            error: "User ID or password not right"
+        });
+    }
+
+    try {
+        // Compare with pass hash
+        const result = await db.query(
+            `SELECT user_id, name FROM users
+             WHERE user_id = $1
+             AND password = crypt($2, password)`,
+            [userId, password]
+        );
+
+        if (result.rows.length === 0) {
+            return res.status(401).render("signin", {
+                error: "User ID or password not right"
+            });
+        }
+
+        // New session after a successful login
+        req.session.regenerate(function (error) {
+            if (error) {
+                return res.status(500).render("signin", {
+                    error: "Please try again, could not log in"
+                });
+            }
+
+            req.session.user = result.rows[0];
+
+            // Save the session
+            req.session.save(function (error) {
+                if (error) {
+                    return res.status(500).render("signin", {
+                        error: "Please try again, could not log in"
+                    });
+                }
+
+                res.redirect("/");
+            });
+        });
+    } catch (error) {
+        console.error("Signin failed:", error.message);
+
+        res.status(500).render("signin", {
+            error: "Please try again, could not log in"
         });
     }
 });
