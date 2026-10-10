@@ -141,22 +141,75 @@ app.post("/signin", async function (req, res) {
 const posts = [] // Store posts in memory
 let nextPostId = 1; // Track the ID to assign to the next new post
 
-// Display the homepage with the current list of posts.
-app.get("/", function (req, res) { 
-  res.render("index", {posts: posts});
+// Display blog posts for signed-in users
+app.get("/", async function (req, res) {
+    if (!req.session.user) {
+        return res.redirect("/signin");
+    }
+
+    try {
+        const result = await db.query(`
+            SELECT
+                blog_id AS id,
+                creator_name AS author,
+                creator_user_id,
+                title,
+                body AS content,
+                date_created AS "createdAt"
+            FROM blogs
+            ORDER BY date_created DESC, blog_id DESC
+        `);
+
+        res.render("index", {
+            posts: result.rows,
+            user: req.session.user
+        });
+    } catch (error) {
+        console.error("Could not load posts:", error.message);
+        res.status(500).send("Please try again");
+    }
 });
 
-// Find the selected post and display its filled-in edit form
-app.get("/posts/:id/edit", function (req, res) {
+// Open the edit form for the poster
+app.get("/posts/:id/edit", async function (req, res) {
+    if (!req.session.user) {
+        return res.redirect("/signin");
+    }
+
     const postId = Number(req.params.id);
-    const post = posts.find(function (item) {
-        return item.id === postId;
-    });
-    if (post === undefined) {
-    res.status(404).send("Post not found");
-    return;
-}
-    res.render("edit", { post: post });
+
+    if (!Number.isInteger(postId) ||
+        postId < 1 || postId > 2147483647) {
+        return res.status(400).send("Not an ID");
+    }
+
+    try {
+        const result = await db.query(
+            `SELECT blog_id AS id, creator_name AS author,
+                    creator_user_id, title, body AS content
+             FROM blogs
+             WHERE blog_id = $1`,
+            [postId]
+        );
+
+        const post = result.rows[0];
+
+        if (!post) {
+            return res.status(404).send("Post not found");
+        }
+
+        // Compare IDs
+        if (post.creator_user_id !== req.session.user.user_id) {
+            return res.status(403).send(
+                "You can only edit your own post"
+            );
+        }
+
+        res.render("edit", { post: post });
+    } catch (error) {
+        console.error("Could not load edit form:", error.message);
+        res.status(500).send("Please try again");
+    }
 });
 
 // Save the changes submitted through the edit form
@@ -187,19 +240,43 @@ app.post("/posts/:id/delete", function (req, res) {
     res.redirect("/");
 });
 
-// Create a new post using the submitted form fields
-app.post("/posts", function (req, res) {
-    const newPost = {
-        author: req.body.author,
-        title: req.body.title,
-        content: req.body.content,
-        createdAt: new Date(),
-        id: nextPostId,
-    };
-    posts.push(newPost);
-    nextPostId = nextPostId + 1;
-    console.log(posts);
-    res.redirect("/");
+// Save a blog post tied to the signedin user
+app.post("/posts", async function (req, res) {
+    if (!req.session.user) {
+        return res.redirect("/signin");
+    }
+
+    const title = (req.body.title || "").trim();
+    const content = (req.body.content || "").trim();
+
+    // Reject empty posts or ones that exceed
+    if (!title || !content || title.length > 255) {
+        return res.status(400).send(
+            'Enter a title and some content, max of 255. <a href="/">Return to home</a>'
+        );
+    }
+
+    try {
+        await db.query(
+            `INSERT INTO blogs
+                (creator_name, creator_user_id, title, body)
+             VALUES ($1, $2, $3, $4)`,
+            [
+                req.session.user.name,
+                req.session.user.user_id,
+                title,
+                content
+            ]
+        );
+
+        res.redirect("/");
+    } catch (error) {
+        console.error("Couldnt create post:", error.message);
+
+        res.status(500).send(
+            'Couldnt save your post. <a href="/">Return to the home</a>'
+        );
+    }
 });
 
 // Start the server on port 3000
