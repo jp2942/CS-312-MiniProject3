@@ -138,6 +138,20 @@ app.post("/signin", async function (req, res) {
     }
 });
 
+// Log out and return to signin
+app.post("/logout", function (req, res) {
+    req.session.destroy(function (error) {
+        if (error) {
+            return res.status(500).send(
+                "Please try again"
+            );
+        }
+
+        res.clearCookie("blog.sid", { path: "/" });
+        res.redirect("/signin");
+    });
+});
+
 // Display blog posts for signed-in users
 app.get("/", async function (req, res) {
     if (!req.session.user) {

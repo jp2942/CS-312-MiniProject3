@@ -9,6 +9,9 @@
   <body>
     <h1>Visiting Sedona? Best Hotels & Activities</h1>
     <p>Signed in as <%= user.name %></p>
+    <form action="/logout" method="POST">
+        <button type="submit">Log Out</button>
+    </form>
     <p>Total posts: <%= posts.length %></p>
         <form action="/posts" method="POST">
             <label for="title">Title:</label>
@@ -22,11 +25,14 @@
                 <h2><%= post.title %></h2>
                 <p>Author: <%= post.author %></p>
                 <p class="post-content">Content: <%= post.content %></p>
-                <p>Created: <%= post.createdAt.toLocaleString() %></p>
+                <p>Created: <%= post.createdAt.toLocaleString() %></p>  
+                <% if (post.creator_user_id === user.user_id) { %>
                     <a href="/posts/<%= post.id %>/edit">Edit</a>
-                        <form action="/posts/<%= post.id %>/delete" method="POST">
-                            <button type="sumbit">Delete</button>
-                        </form>
+
+                    <form action="/posts/<%= post.id %>/delete" method="POST">
+                        <button type="submit">Delete</button>
+                    </form>
+                <% } %>
             </article>
         <% }); %>
   </body>
