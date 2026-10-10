@@ -212,20 +212,47 @@ app.get("/posts/:id/edit", async function (req, res) {
     }
 });
 
-// Save the changes submitted through the edit form
-app.post("/posts/:id/edit", function (req, res) {
+// Save changes when the signedin user owns the post
+app.post("/posts/:id/edit", async function (req, res) {
+    if (!req.session.user) {
+        return res.redirect("/signin");
+    }
+
     const postId = Number(req.params.id);
-    const post = posts.find(function (item) {
-        return item.id === postId;
-    });
-    if (post === undefined) {
-    res.status(404).send("Post not found");
-    return;
-}
-   post.author = req.body.author;
-   post.title = req.body.title;
-   post.content = req.body.content;
-   res.redirect("/");
+    const title = (req.body.title || "").trim();
+    const content = (req.body.content || "").trim();
+
+    if (!Number.isInteger(postId) ||
+        postId < 1 || postId > 2147483647) {
+        return res.status(400).send("Invalid post ID.");
+    }
+
+    if (!title || !content || title.length > 255) {
+        return res.status(400).send(
+            'Enter a title and some content <a href="/">Return to home</a>'
+        );
+    }
+
+    try {
+        // Update only a post belonging to this account
+        const result = await db.query(
+            `UPDATE blogs
+             SET title = $1, body = $2
+             WHERE blog_id = $3 AND creator_user_id = $4`,
+            [title, content, postId, req.session.user.user_id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).send(
+                "Post not found, or do not have permission to edit it"
+            );
+        }
+
+        res.redirect("/");
+    } catch (error) {
+        console.error("Could not update post:", error.message);
+        res.status(500).send("Please try again");
+    }
 });
 
 // Remove the selected post and return to the homepage
