@@ -138,9 +138,6 @@ app.post("/signin", async function (req, res) {
     }
 });
 
-const posts = [] // Store posts in memory
-let nextPostId = 1; // Track the ID to assign to the next new post
-
 // Display blog posts for signed-in users
 app.get("/", async function (req, res) {
     if (!req.session.user) {
@@ -255,16 +252,37 @@ app.post("/posts/:id/edit", async function (req, res) {
     }
 });
 
-// Remove the selected post and return to the homepage
-app.post("/posts/:id/delete", function (req, res) {
+// Delete a saved post when the user owns it
+app.post("/posts/:id/delete", async function (req, res) {
+    if (!req.session.user) {
+        return res.redirect("/signin");
+    }
+
     const postId = Number(req.params.id);
-    const postIndex = posts.findIndex(function (item) {
-        return item.id === postId;
-    });
-    if (postIndex !== -1) {
-    posts.splice(postIndex,1);
-}
-    res.redirect("/");
+
+    if (!Number.isInteger(postId) ||
+        postId < 1 || postId > 2147483647) {
+        return res.status(400).send("Invalid post ID");
+    }
+
+    try {
+        const result = await db.query(
+            `DELETE FROM blogs
+             WHERE blog_id = $1 AND creator_user_id = $2`,
+            [postId, req.session.user.user_id]
+        );
+
+        if (result.rowCount === 0) {
+            return res.status(404).send(
+                "Post not found, or no permission to delete it"
+            );
+        }
+
+        res.redirect("/");
+    } catch (error) {
+        console.error("Could not delete post:", error.message);
+        res.status(500).send("Please try again");
+    }
 });
 
 // Save a blog post tied to the signedin user
