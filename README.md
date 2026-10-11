@@ -1,47 +1,38 @@
 # Sedona Travel Blog
 
-Jaden Patel — CS-312 Mini-Project 1
+Jaden Patel — CS-312 Mini-Project 3
 
-For this project, I built a simple blog about visiting Sedona using Node.js, Express, EJS, and CSS. Users can share travel experiences and suggestions by creating posts. They can also edit or delete posts from the homepage.
+This project builds on my first Sedona blog using Node.js, Express, EJS, CSS, and PostgreSQL. Users can sign in and share travel experiences. Posts are saved in the database and stay after restarting the server.
 
 ## Features
 
-* Create a post with an author, title, and content.
-* View all posts and the total number of posts.
-* Show when each post was created.
-* Edit a post with its current information already filled in.
-* Delete posts.
-* Use the site on a computer or phone.
+- Sign up, sign in, and log out.
+- Create posts with a title and content.
+- View posts with the author's name and creation date.
+- Edit and delete only your own posts.
+- Use the site on different screen sizes.
 
 ## Running the Project
 
-Make sure Node.js and npm are installed. Download or clone this repository, then open a terminal in the project folder.
+Make sure Node.js, npm, and PostgreSQL are installed.
 
-Install the dependencies:
+1. Clone the repository and open the project folder.
+2. Run npm install.
+3. Create a database named blogdb in pgAdmin.
+4. Run database/schema.sql, then database/seed.sql in that database. Run the seed file once to add the starting users and posts.
+5. Copy .env.example to .env and fill in your database settings and a random SESSION_SECRET.
+6. Run node index.js.
 
-```bash
-npm install
-```
-
-Start the server:
-
-```bash
-node index.js
-```
-
-Open http://localhost:3000 in your browser. Press **Ctrl+C** in the terminal to stop the server.
+Open http://localhost:3000 in your browser. Press Ctrl+C in the terminal to stop the server.
 
 ## Main Files
 
-* `index.js` handles the server and routes.
-* `views/index.ejs` contains the homepage and list of posts.
-* `views/edit.ejs` contains the edit form.
-* `public/styles.css` contains the styling for both pages.
-
-## Post Storage
-
-Posts are stored in an array instead of a database. This means all posts are cleared when the server restarts.
+- index.js handles the server, accounts, and blog routes.
+- db.js connects to PostgreSQL.
+- views contains the feed, edit, signup, and signin pages.
+- public/styles.css styles the pages.
+- database contains the table setup and starting entries.
 
 ## Testing
 
-I tested creating, editing, and deleting posts. I also checked that empty required fields prevent form submission, line breaks display correctly, and missing posts show a “Post not found” message. I tested the site on my computer and phone.
+I tested signing up, signing in, creating posts, editing, and deleting. I also checked that users can only change their own posts and that posts stay saved after restarting the server.
